@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ROOT_DIR=`pwd`
-USER_NAME="xxxxxx"
+USER_NAME="xxx"
 CORES="12"
 GIT_DOWNLOAD_REPOS="https://$USER_NAME@github.intel.com/AIPG/paddle https://$USER_NAME@github.intel.com/AIPG/paddle-models"
 
