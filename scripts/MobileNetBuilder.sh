@@ -26,9 +26,17 @@ OPT_MODEL_CAPI_DIR_BUILD="$MODEL_CAPI_DIR/build"
 ####### EXTRACT #################
 #################################
 
-USE_MODEL="resnet50_baidu"
+#USE_MODEL="resnet50_baidu"
+#USE_MODEL="MobileNet_imagenet"
+USE_MODEL="MobileNet-v1_baidu"
 SAVE_MODELS_DIR="$ROOT_DIR/save_models_extract_dir"
 
+##########################
+#   BIG_DATA_SET_CONFIG
+##########################
+
+BIG_DATASET_DIR_DATA="/home/$USER_NAME/BIG_DATASET/imagenet/"
+BIG_DATASET_LIST_FILE="$BIG_DATASET_DIR_DATA/val_list.txt"
 
 
 function FetchRepository() {
@@ -107,6 +115,9 @@ function run_infer_image() {
 
 
      if [ ! -d "$PADDLE_DIR" ]; then
+
+
+
          echo "[ERROR]: Fist you need build paddle-paddle"
          exit
      fi
@@ -127,9 +138,37 @@ function run_infer_image() {
 
      fi
 
+
+
+    if [ ! -d "$BIG_DATASET_DIR_DATA" ]; then
+
+        echo "[ERROR]: Diretory BIG_DATA does not exist $BIG_DATASET_DIR_DATA"
+        exit;
+    fi
+    
+    sub_folders="small val"
+
+    for folder in $sub_folder; do 
+       
+     if [ ! -d "$BIG_DATASET_DIR_DATA/$folder" ]; then
+            echo "[ERROR]: Big_data set is wrong $BIG_DATASET_DIR_DATA/$folder "
+            exit
+     fi    
+
+    done 
+
+
+
+    if [ ! -f "$BIG_DATASET_LIST_FILE" ]; then
+        echo "[ERROR]: DataList file does not exist $BIG_DATASET_LIST_FILE"
+        exit
+    fi
+
      cd $OPT_MODEL_CAPI_DIR_BUILD
-     ./infer_image_classification --infer_model="$SAVE_MODELS_DIR/$USE_MODEL" --use_fake_data --skip_batch_num=10 --batch_size=128 --iterations=100 --profile --paddle_num_threads=20 --use_mkldnn
-     cd $ROOT_DIR
+                                                                                       
+      numactl --membind=0 --physcpubind=0-19 ./infer_image_classification --infer_model="$SAVE_MODELS_DIR/$USE_MODEL" --data_list=$BIG_DATASET_LIST_FILE --data_dir=$BIG_DATASET_DIR_DATA --skip_batch_num=0 --batch_size=32 --iterations=100 --profile --paddle_num_threads=20 --use_mkldnn
+
+      cd $ROOT_DIR
 }
 
 
