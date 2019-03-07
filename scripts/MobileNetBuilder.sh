@@ -1,8 +1,17 @@
 #!/bin/bash
 
 ROOT_DIR=`pwd`
-USER_NAME="xxx"
+USER_NAME=""
+
+if [ ${#USER_NAME} == 0 ]; then
+
+      IFS="/" tokens=($HOME)
+      IFS=""
+      USER_NAME=${tokens[2]}   
+fi
+
 CORES="12"
+
 GIT_DOWNLOAD_REPOS="https://$USER_NAME@github.intel.com/AIPG/paddle https://$USER_NAME@github.intel.com/AIPG/paddle-models"
 
 
