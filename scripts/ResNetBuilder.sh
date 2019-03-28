@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ulimit -n 65535
+
 ROOT_DIR=`pwd`
 USER_NAME=""
 
@@ -11,7 +13,7 @@ if [ ${#USER_NAME} == 0 ]; then
 fi
 
 
-CORES="12"
+CORES="8"
 GIT_DOWNLOAD_REPOS="https://$USER_NAME@github.intel.com/AIPG/paddle https://$USER_NAME@github.intel.com/AIPG/paddle-models"
 
 
@@ -137,7 +139,7 @@ function run_infer_image() {
      fi
 
      cd $OPT_MODEL_CAPI_DIR_BUILD
-     ./infer_image_classification --infer_model="$SAVE_MODELS_DIR/$USE_MODEL" --use_fake_data --skip_batch_num=10 --batch_size=128 --iterations=100 --profile --paddle_num_threads=20 --use_mkldnn
+     ./infer_image_classification --infer_model="$SAVE_MODELS_DIR/$USE_MODEL" --use_fake_data --skip_batch_num=10 --batch_size=32 --iterations=100 --profile --paddle_num_threads=18 --use_mkldnn
      cd $ROOT_DIR
 }
 

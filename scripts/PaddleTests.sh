@@ -1,13 +1,14 @@
 #!/bin/bash
-
+export http_proxy="http://proxy-chain.intel.com:911"
+SAVEIFS=$IFS
 ROOT_DIR=`pwd`
 USER_NAME=""
 
 if [ ${#USER_NAME} == 0 ]; then
 
       IFS="/" tokens=($HOME)
-      IFS=""
-      USER_NAME=${tokens[2]}   
+      USER_NAME=${tokens[2]}
+      IFS=$SAVEIFS   
 fi
 
 CORES="10"
@@ -64,7 +65,7 @@ function FetchRepository() {
            local git_repo="$repo"
            echo "Repository $git_repo"
            IFS="/" tokens=($repo)
-           IFS=""
+           IFS=$SAVEIFS
            last=${#tokens[@]}
            repo_dir=${tokens[$last-1]}
            echo "Check if $repo_dir exists...."
@@ -195,7 +196,7 @@ function RunTests() {
 
      if [ ! -f "$LCOV_PATH" ]; then
          echo "[WARN]: LCOV not found install apt-get install auto-install "
-         sudo apt-get update && sudo apt-get install -y lcov
+         sudo http_proxy="$http_proxy" apt-get update && sudo http_proxy="$http_proxy"  apt-get install -y lcov
      fi
 
      if [ ! -f "$LCOV_PATH" ]; then
@@ -222,14 +223,14 @@ function RunTests() {
      cd $OPT_PADDLE_BUILD
    
 
-   # cmake .. -DWITH_GPU=OFF -DWITH_PROFILER=ON -DWITH_STYLE_CHECK=OFF -DWITH_MKLDNN=ON -DWITH_TESTING=ON -DWITH_COVERAGE=ON
+    cmake .. -DWITH_GPU=OFF -DWITH_PROFILER=ON -DWITH_STYLE_CHECK=OFF -DWITH_MKLDNN=ON -DWITH_TESTING=ON -DWITH_COVERAGE=ON
 
     if [ ! $? -eq 0 ]; then
         echo "[ERROR] : cmake ...."
         exit;
      fi
 
-   # make -j $CORES
+    make -j $CORES
 
     if [ ! $? -eq 0 ]; then
         echo "[ERROR] : make -j $CORES"
@@ -247,7 +248,8 @@ function RunTests() {
     #ctest -R mkldnn -V
 
     ctest -R mkldnn -V
-   # $LCOV_PATH --capture --directory . --output-file coverage.info;genhtml coverage.info --output-directory out
+    $LCOV_PATH --capture --directory . --output-file coverage.info
+    genhtml --demangle-cpp coverage.info --output-directory out
  echo "$PYTHONPATH"
 
     if [ ! $? -eq 0 ]; then
