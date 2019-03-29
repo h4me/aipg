@@ -455,13 +455,14 @@ function OptCgdbAttach() {
 
   if [ ! -d $unit_test_dir ]; then 
 
-    echo "error: Directory does not exists $unit_test_dir"
+    echo "error: Directory does not exist $unit_test_dir"
     exit 1
   fi
 
   cd $unit_test_dir
 
   # FLAGS_use_mkldnn=true cgdb python --args python2.7 __test_name__
+  # export FLAGS_use_mkldnn=true
    FLAGS_use_mkldnn=true cgdb python --args python2.7 test_$1.py
 
 }
