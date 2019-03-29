@@ -61,6 +61,7 @@ function usage() {
   echo "--cmake"
   echo "--build"
   echo "--run"
+  echo "--cgdb"
   
   exit 1;
 
@@ -445,6 +446,26 @@ function RunTests() {
 }
 
 
+function OptCgdbAttach() {
+
+  echo "Attach to cgdb......$1"
+  export PYTHONPATH="$PYTHONPATH"
+
+  unit_test_dir="$PADDLE_DIR/build/python/paddle/fluid/tests/unittests/"
+
+  if [ ! -d $unit_test_dir ]; then 
+
+    echo "error: Directory does not exists $unit_test_dir"
+    exit 1
+  fi
+
+  cd $unit_test_dir
+
+  # FLAGS_use_mkldnn=true cgdb python --args python2.7 __test_name__
+   FLAGS_use_mkldnn=true cgdb python --args python2.7 test_$1.py
+
+}
+
 
 function run_all() {
 
@@ -452,7 +473,7 @@ function run_all() {
    
 }
 
-# used=0
+#var used=0
 
  if [ $# -eq 0 ]; then
     usage
@@ -460,7 +481,7 @@ function run_all() {
 
 for item in "$@"
 do
-    var used=0
+     used=0
     if [  "$item" = "--cmake" ]; then
            echo "--cmake found"
            OptBuildCmakePaddle
@@ -481,6 +502,14 @@ do
            used=1 
     fi  
    
+
+    if [  "$item" = "--cgdb" ]; then
+           echo "--run found";
+           OptCgdbAttach "conv2d_op"
+           used=1 
+    fi  
+   
+    
    
   #    OptRunTest("conv2d_op")
     
