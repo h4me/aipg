@@ -62,6 +62,7 @@ function usage() {
   echo "--build"
   echo "--run"
   echo "--cgdb"
+  echo "--cgdb2 [test_conv2d_mkldnn_op.py]"
   
   exit 1;
 
@@ -468,6 +469,29 @@ function OptCgdbAttach() {
 }
 
 
+function OptCgdbAttach2() {
+
+  echo "Attach to cgdb......$1"
+  export PYTHONPATH="$PYTHONPATH"
+
+  unit_test_dir="$PADDLE_DIR/build/python/paddle/fluid/tests/unittests/mkldnn/"
+
+  if [ ! -d $unit_test_dir ]; then 
+
+    echo "error: Directory does not exist $unit_test_dir"
+    exit 1
+  fi
+
+  cd $unit_test_dir
+
+  # FLAGS_use_mkldnn=true cgdb python --args python2.7 __test_name__
+   export FLAGS_use_mkldnn=true
+   FLAGS_use_mkldnn=true cgdb  --args python2.7 test_conv2d_mkldnn_op.py
+
+}
+
+
+
 function run_all() {
 
    RunTests
@@ -509,6 +533,15 @@ do
            OptCgdbAttach "conv2d_op"
            used=1 
     fi  
+   
+
+    if [  "$item" = "--cgdb2" ]; then
+           echo "--run found";
+           OptCgdbAttach2 "conv2d_op"
+           used=1 
+    fi  
+   
+    
    
     
    
