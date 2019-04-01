@@ -54,7 +54,7 @@ BIG_DATASET_LIST_FILE="$BIG_DATASET_DIR_DATA/val_list.txt"
 ##########################
 ##### TESTS #################
 LCOV_PATH="/usr/bin/lcov"
-
+TEST_NAME="conv2d_mkldnn_op"
 function usage() {
 
   echo "usage(): \n" 
@@ -62,9 +62,9 @@ function usage() {
   echo "--build"
   echo "--run"
   echo "--cgdb"
-  echo "--cgdb2 [test_conv2d_mkldnn_op.py]"
-  echo "--pyt-init    -m pdb[1]"
-  echo "--attach-cgdb       [2]"
+  echo "--cgdb2 [$TEST_NAME] CORRECT VERSION"
+  echo "--pyt-init           PYTHON CORRECT VERSION PUDBG"
+  echo "--attach-cgdb        [2]"
   
   exit 1;
 
@@ -488,7 +488,7 @@ function OptCgdbAttach2() {
 
   # FLAGS_use_mkldnn=true cgdb python --args python2.7 __test_name__
    export FLAGS_use_mkldnn=true
-   FLAGS_use_mkldnn=true cgdb  --args python2.7 test_conv2d_mkldnn_op.py
+   FLAGS_use_mkldnn=true cgdb  --args python2.7 test_$1.py
 
 }
 
@@ -510,7 +510,7 @@ function OptPythonDbgState() {
 
   # FLAGS_use_mkldnn=true cgdb python --args python2.7 __test_name__
    export FLAGS_use_mkldnn=true
-   FLAGS_use_mkldnn=true python2.7 -m pudb test_conv2d_mkldnn_op.py
+   FLAGS_use_mkldnn=true python2.7 -m pudb test_$1.py
 
 }
 
@@ -549,6 +549,8 @@ function run_all() {
     usage
  fi 
 
+
+
 for item in "$@"
 do
      used=0
@@ -568,7 +570,7 @@ do
 
     if [  "$item" = "--run" ]; then
            echo "--run found";
-           OptRunTest "conv2d_op"
+           OptRunTest $TEST_NAME
            used=1 
     fi  
    
@@ -582,14 +584,14 @@ do
 
     if [  "$item" = "--cgdb2" ]; then
            echo "--run found";
-           OptCgdbAttach2 "conv2d_op"
+           OptCgdbAttach2 $TEST_NAME
            used=1 
     fi  
    
 
     if [  "$item" = "--pyt-init" ]; then
            echo "--run found";
-           OptPythonDbgState "conv2d_op"
+           OptPythonDbgState $TEST_NAME
            used=1 
     fi  
     
