@@ -1,0 +1,17 @@
+The execution of PUDB is easy enough to follow if you are familiar with another debugger application (otherwise see the user-friendly links cited in the first section of this tutorial). The following list provides a reference of keyboard shortcuts for some of the most useful and common operations available in PUDB:
+
+    n: Execute next command
+    s: Step into a function
+    c: Continue execution
+    b: Set a breakpoint on the current line
+    e: Show the traceback from a thrown exception
+    q: Opens dialog to either quit or to restart the running program
+    o: Show the original console / standard output screen
+    m: Open a module in a different file
+    L: Go to line
+    !: Go to the Python command line subwindow at the bottom of the screen
+    ?: Display the help dialog which includes a complete listing of shortcut commands
+    <SHIFT+V>: Switch context to the variables subwindow on the right of the screen
+    <SHIFT+B>: Switch context to the breakpoints subwindow on the right of the screen
+    <CTRL+X>: Toggle contexts between the lines of code and the Python command line
+
