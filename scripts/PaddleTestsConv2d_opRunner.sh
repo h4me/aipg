@@ -11,7 +11,7 @@ if [ ${#USER_NAME} == 0 ]; then
       IFS=$SAVEIFS   
 fi
 
-CORES="10"
+CORES="18"
 
 GIT_DOWNLOAD_REPOS="https://$USER_NAME@github.intel.com/AIPG/paddle https://$USER_NAME@github.intel.com/AIPG/paddle-models"
 
@@ -65,6 +65,7 @@ function usage() {
   echo "--cgdb2 [$TEST_NAME] CORRECT VERSION"
   echo "--pyt-init           PYTHON CORRECT VERSION PUDBG"
   echo "--attach-cgdb        [2]"
+  echo "--show-python-path   "
   
   exit 1;
 
@@ -536,6 +537,11 @@ function OptCgdbAttach() {
 
 }
 
+OptShowPythonPath() {
+
+ echo "export  PYTHONPATH=\"$PYTHONPATH\""
+
+}
 
 function run_all() {
 
@@ -601,7 +607,11 @@ do
            used=1 
     fi  
     
-
+   if [  "$item" = "--show-python-path" ]; then
+           OptShowPythonPath "conv2d_op"
+           used=1 
+    fi  
+    
     
    
 
