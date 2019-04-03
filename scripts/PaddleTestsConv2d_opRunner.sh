@@ -3,7 +3,7 @@ export http_proxy="http://proxy-chain.intel.com:911"
 SAVEIFS=$IFS
 ROOT_DIR=`pwd`
 USER_NAME=""
-
+ulimit -n 65535
 if [ ${#USER_NAME} == 0 ]; then
 
       IFS="/" tokens=($HOME)
