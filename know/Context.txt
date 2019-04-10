@@ -1,0 +1,15 @@
+
+
+1. AScope = Scope()
+2. ARunCtx = { AScope }
+2. AExecutionCtx = { AScope, OperX , ARunCtx }
+3. AScopeSchild = AScope.createChild()
+4. BExeCtx = { AScopeChild, OperX }
+6. AConvMklDnn->Compute( BExecCtx )
+     {
+            -> ArunCtx
+            -> AScopeChild
+            -> OpeerX
+            -> deviceContext
+     }
+
