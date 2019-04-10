@@ -1,15 +1,101 @@
 
 
 1. AScope = Scope()
-2. ARunCtx = { AScope }
-2. AExecutionCtx = { AScope, OperX , ARunCtx }
+2. ARunCtx = { AScope }   /* RunCtx sa 2 pewnie GRAD i NOGRAD ? */
+2. AExecutionCtx = { AScope, OperX , ARunCtx } /* Tez sa dwie instancje */
 3. AScopeSchild = AScope.createChild()
 4. BExeCtx = { AScopeChild, OperX }
 6. AConvMklDnn->Compute( BExecCtx )
-     {
+    BExeCtx-> {
             -> ArunCtx
-            -> AScopeChild
-            -> OpeerX
+            -> AScopeChild ( zawsze rozny )
+            -> OpeerXa ( rozny dla operatora )
             -> deviceContext
      }
 
+
+
+=================================
+
+
+class RuntimeContext {
+ public:
+  RuntimeContext(const VariableNameMap& innames,
+                 const VariableNameMap& outnames, const Scope& scope);
+
+  RuntimeContext(const VariableValueMap& invars,
+                 const VariableValueMap& outvars)
+      : inputs(invars), outputs(outvars) {}
+
+/*
+      using VariableNameMap = std::map<std::string, std::vector<std::string>>; 
+      using VariableValueMap = std::map<std::string, std::vector<Variable*>>;
+*/
+
+  VariableValueMap inputs;
+  VariableValueMap outputs;
+};
+
+
+ class MKLDNNDeviceContext : public CPUDeviceContext
+ {
+
+    void SetBlob(KeyBlobKeyPass  name, std::shared_ptr<void> data) const;
+
+    private:
+    using KeyBlob = std::unordered_map<KeyBlobKey, std::shared_ptr<void>>;
+ }
+
+
+ OperatorKernel {
+
+ ComputeFP32(const paddle::framework::ExecutionContext& ctx /* Tez sa dwie instancje */)
+ {
+
+         auto* input = ctx.Input<Tensor>("Input");  /* ctx.Input<..> -> InputVar(..) -> RunCtx.inputs */ 
+         auto* filter = ctx.Input<Tensor>("Filter");   
+
+
+
+
+        auto& dev_ctx =
+        ctx.device_context<paddle::platform::MKLDNNDeviceContext>();
+
+        /* dev_ctx - zawsze ta sama instancja */
+        dev_ctx.SetBlob(key_conv_pd, conv_pd);
+
+  }
+
+
+}
+
+484: ConvMKLDNNOpKernel(0x7ffe3431bbb0) instance=0x7ffe3431bbb0
+484: ConvMKLDNNOpKernel(0x7ffe3431bfc0) instance=0x7ffe3431bfc0
+     
+
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+484: ConvMKLDNNGradOpKernel(this=0x7ffe3431bbb0)
+
+========================================
+
+484: follow key-change (this=0x7ffd97b26aa0) ExeCtx=0x7ffd97b26c50 position=0 name=ConvMKLDNNOpKernel()     op_addr=0x5f797b0 from-key=[2-3-5-5-6-3-3-3-1-1-0-0-1-1-1InputFilter]    to-key=[2-3-5-5-6-3-1-1-1-1-0-0-1-1-1InputFilter]
+484: follow key-change (this=0x7ffd97b26690) ExeCtx=0x7ffd97b26840 position=4 name=ConvMKLDNNOpKernel()     op_addr=0x6100a00 from-key=[2-3-5-5-6-3-1-1-1-1-0-0-1-1-1InputFilter]    to-key=[2-3-5-5-6-3-3-3-1-1-1-1-1-1-1InputFilter]
+484: follow key-change (this=0x7ffd97b26aa0) ExeCtx=0x7ffd97b26c50 position=0 name=ConvMKLDNNOpKernel()     op_addr=0x5f6d420 from-key=[2-3-5-5-6-3-3-3-1-1-1-1-1-1-1InputFilter]    to-key=[2-3-5-5-3-2-1-3-3-1-1-0-0-1-1-3InputFilter]
+484: follow key-change (this=0x7ffd97b26690) ExeCtx=0x7ffd97b26840 position=6 name=ConvMKLDNNGradOpKernel() op_addr=0x6446810 from-key=[2-3-5-5-6-3-3-3-1-1-0-0-1-1-1InputFilter]    to-key=[2-3-5-5-3-2-1-3-3-1-1-0-0-1-1-3InputFilter]
+484: follow key-change (this=0x7ffd97b26aa0) ExeCtx=0x7ffd97b26c50 position=0 name=ConvMKLDNNOpKernel()     op_addr=0x664f200 from-key=[2-3-5-5-3-2-1-3-3-1-1-0-0-1-1-3InputFilter]  to-key=[2-3-1-1-3-2-1-1-1-1-1-0-0-1-1-3InputFilter]
+484: follow key-change (this=0x7ffd97b26aa0) ExeCtx=0x7ffd97b26c50 position=0 name=ConvMKLDNNOpKernel()     op_addr=0x657d3d0 from-key=[2-3-1-1-3-2-1-1-1-1-1-0-0-1-1-3InputFilter]  to-key=[2-3-6-6-6-3-3-3-1-1-1-1-1-1-1InputFilter]
+484: follow key-change (this=0x7ffd97b26aa0) ExeCtx=0x7ffd97b26c50 position=0 name=ConvMKLDNNOpKernel()     op_addr=0x65a7620 from-key=[2-3-6-6-6-3-3-3-1-1-1-1-1-1-1InputFilter]    to-key=[2-3-6-6-6-3-3-3-2-2-1-1-1-1-1InputFilter]
+484: follow key-change (this=0x7ffd97b26690) ExeCtx=0x7ffd97b26840 position=6 name=ConvMKLDNNGradOpKernel() op_addr=0x7054c70 from-key=[2-3-5-5-3-2-1-3-3-1-1-0-0-1-1-3InputFilter]  to-key=[2-3-6-6-6-3-3-3-2-2-1-1-1-1-1InputFilter]
+
+
+
+
+
+ 
