@@ -61,6 +61,7 @@ function usage() {
   echo "--cmake"
   echo "--build"
   echo "--run"
+  echo "--run-fixme"
   echo "--cgdb"
   echo "--cgdb2 [$TEST_NAME] CORRECT VERSION"
   echo "--pyt-init           PYTHON CORRECT VERSION PUDBG"
@@ -579,7 +580,15 @@ do
            OptRunTest $TEST_NAME
            used=1 
     fi  
-   
+
+
+    if [  "$item" = "--run-fixme" ]; then
+           echo "--run found";
+           export FIXME="true"
+           OptRunTest $TEST_NAME
+           used=1 
+    fi  
+
 
     if [  "$item" = "--cgdb" ]; then
            echo "--run found";
