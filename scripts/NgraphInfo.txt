@@ -1,0 +1,8 @@
+rm -rf *;cmake .. -DCMAKE_BUILD_TYPE=Release -DWITH_DOC=OFF -DWITH_GPU=OFF -DWITH_DISTRIBUTE=OFF -DWITH_MKLDNN=ON -DWITH_MKL=ON -DWITH_GOLANG=OFF -DWITH_STYLE_CHECK=OFF -DWITH_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DWITH_PROFILER=OFF -DWITH_NGRAPH=ON;make -j50
+
+python infer_image_classification.py --batch_size=1 --data_set=imagenet --iterations=400 --device=CPU --skip_batch_num=10 --infer_model_path=/data/PaddlePaddle/models/paddlepaddle/resnet_50_v1 --profile --use_fake_data
+
+
+http://ngra.ph/
+
+
