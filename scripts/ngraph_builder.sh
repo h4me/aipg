@@ -49,6 +49,28 @@ function build_release()
 
 }
 
+
+function build_release_new() {
+
+
+ echo "******* BUILD RELEASE *****"
+
+
+    if [ ! -d $build_dir_release ]; then
+         echo "Create directory $build_dir_release"
+         mkdir $build_dir_release
+    fi
+
+    cd $build_dir_release
+
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DWITH_GPU=OFF -DWITH_MKLDNN=ON -DWITH_TESTING=ON -DWITH_PROFILER=ON -DWITH_STYLE_CHECK=OFF -DON_INFER=ON -DWITH_NGRAPH=ON
+
+    make -j50
+
+
+
+}
+
 function build_debug()
 {
 
@@ -146,6 +168,7 @@ function infer_image_release() {
 
 
 
+#build_release_new
 #build_release
 #build_debug
 #infer_image_debug

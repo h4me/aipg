@@ -8,15 +8,18 @@ if [ ! -f /usr/bin/git ]; then
 fi
 
 USER_NAME=`whoami`
-GIT_DOWNLOAD_REPOS="https://$USER_NAME@github.intel.com/AIPG/paddle https://$USER_NAME@github.intel.com/AIPG/paddle-models"
-CHECK_FOLDERS="paddle paddle-models"
+GIT_DOWNLOAD_REPOS="https://$USER_NAME@github.intel.com/AIPG/paddle-models"
+
+NEWNAME="paddle-public"
+CHECK_FOLDERS="$NEWNAME paddle-models"
 
 for repo in $GIT_DOWNLOAD_REPOS; do 
   echo "Download  $repo"
-  git clone $repo
+  git clone -b develop-integration $repo
 done
 
 
+git clone https://github.com/PaddlePaddle/Paddle.git $NEWNAME
 
 for d in $CHECK_FOLDERS; do 
   
@@ -30,5 +33,6 @@ done
 
 echo "== Git repositories [OK] ==="
 
+echo "export PADDLE_REF=\"$NEWNAME\" " > ref.txt
 exit 0
 
