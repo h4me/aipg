@@ -232,26 +232,36 @@ if [ $# -eq 0 ]; then
 
 for item in "$@"
 do
-
+    was_used=0
    if [  "$item" = "--debug" ]; then
            echo "--debug found"
-           is_debug=1 
+           is_debug=1
+           was_used=1 
    fi
 
    if [  "$item" = "--cmake" ]; then
            echo "--cmake found"
            is_cmake=1 
+           was_used=1
    fi
 
    if [  "$item" = "--build" ]; then
            echo "--build found"
            is_build=1 
+           was_used=1
    fi
 
    if [  "$item" = "--run-infer" ]; then
            echo "--run-infer found"
            is_infer=1 
+           was_used=1
    fi
+
+   if [ $was_used -eq 0 ]; then
+       "ERROR Args is unknown $item" 
+     exit 1
+   fi
+
 
 done
 
