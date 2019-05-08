@@ -1,0 +1,5 @@
+{
+    "search.useIgnoreFiles": false,
+    "git.enabled": false,
+    "C_Cpp.default.defines": ["PADDLE_WITH_MKLDNN","PADDLE_WITH_NGRAPH"]
+}
