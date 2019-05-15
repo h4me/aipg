@@ -9,6 +9,7 @@ is_build_capi_app_infer_image=0
 is_build_capi=0
 is_infer_capi=0
 is_build_paddlepaddle=0
+is_ctest=0
 
 if [ ! -f ref.txt ]; then
    echo "ref.txt not found run pre script"
@@ -47,14 +48,21 @@ function exe_cmd() {
 
 source ref.txt
 
+echo -e '\033[0;31m'"########## WORKDIR: ["  $PADDLE_REF "] ####################"  '\033[0m'
 function usage() {
 
      echo "Usage:  [---show-python-path]"
      echo "Usage:  [--debug] --build-paddlepaddle --build-capi-app-infer-image --run-infer-capi --run-infer-python"
- 
+     echo "---- python unit test ---"
+     echo "Usage:  [--ctest-stack]"
 }
 
-echo $PADDLE_REF
+
+function note() {
+
+echo -e '\033[0;31m'"[info]:"$1'\033[0m'
+
+}
 
 
 
@@ -90,7 +98,33 @@ BIG_DATASET_DIR_DATA="/home/pawepiot/BIG_DATASET/imagenet/"
 BIG_DATASET_LIST_FILE="$BIG_DATASET_DIR_DATA/val_list.txt"
 
 
+function run_ctest() {
 
+  test_name=$1
+
+  if [ ! -d $build_dir_paddlepaddle ]; then
+   echo "ERROR: first build paddle paddle not dir found $build_dir_paddlepaddle"
+   exit 1
+  fi
+
+  exe_cmd "cd $build_dir_paddlepaddle"
+
+ # if [ $is_debug -eq 1 ]; then
+   
+#  fi
+
+  export LD_LIBRARY_PATH="$build_dir_debug/python/paddle/libs"  
+  note "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+  if [ ! -d $LD_LIBRARY_PATH ]; then
+    echo "ERROR: fail set LD_LIBRARY_PATH dir not found $LD_LIBRARY_PATH"
+    exit 1
+  fi
+
+  #export FLAGS_use_ngraph=true
+  exe_cmd "ctest -R $test_name -V"
+  
+
+}
 
 function build_capi_app_infer_image()
 {
@@ -230,9 +264,9 @@ function build_paddlepaddle()
 
     extra_options=""
 
-    extra_options="-DWITH_NGRAPH=ON -DWITH_FLUID_ONLY=ON"
+    extra_options="-DWITH_NGRAPH=ON -DWITH_FLUID_ONLY=ON -DWITH_TESTING=ON"
 
-    exe_cmd "cmake .. -DCMAKE_BUILD_TYPE=$TYPE_COMPILE $extra_options -DWITH_DOC=OFF -DWITH_GPU=OFF -DWITH_DISTRIBUTE=OFF -DWITH_MKLDNN=ON -DWITH_MKL=ON -DWITH_GOLANG=OFF -DWITH_STYLE_CHECK=OFF -DWITH_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DWITH_PROFILER=OFF "
+    exe_cmd "cmake .. -DCMAKE_BUILD_TYPE=$TYPE_COMPILE $extra_options -DWITH_DOC=OFF -DWITH_GPU=OFF -DWITH_DISTRIBUTE=OFF -DWITH_MKLDNN=ON -DWITH_MKL=ON -DWITH_GOLANG=OFF -DWITH_STYLE_CHECK=OFF  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DWITH_PROFILER=OFF "
 
     exe_cmd "make -j $CORES"
     exe_cmd "make -j $CORES  inference_lib_dist"
@@ -436,6 +470,10 @@ do
          was_used=1
    fi
 
+   if [ "$item" = "--ctest-stack" ]; then
+         is_ctest=1
+         was_used=1
+   fi
 
 
    if [ $was_used -eq 0 ]; then
@@ -481,3 +519,11 @@ if [ $is_infer_python -eq 1 ]; then
         run_infer_image_python
 fi
 
+
+if [ $is_ctest -eq 1 ]; then
+
+  #   run_ctest test_conv2d
+   run_ctest stack_ngraph
+  # run_ctest stack_op
+
+fi
