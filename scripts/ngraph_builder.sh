@@ -10,6 +10,7 @@ is_build_capi=0
 is_infer_capi=0
 is_build_paddlepaddle=0
 is_ctest=0
+is_clear=0
 
 if [ ! -f ref.txt ]; then
    echo "ref.txt not found run pre script"
@@ -52,9 +53,10 @@ echo -e '\033[0;31m'"########## WORKDIR: ["  $PADDLE_REF "] ####################
 function usage() {
 
      echo "Usage:  [---show-python-path]"
-     echo "Usage:  [--debug] --build-paddlepaddle --build-capi-app-infer-image --run-infer-capi --run-infer-python"
+     echo "Usage:  [--debug] --clear {--build-paddlepaddle --build-paddlepaddle-only-make} --build-capi-app-infer-image --run-infer-capi --run-infer-python"
      echo "---- python unit test ---"
      echo "Usage:  [--ctest-stack]"
+     echo "Usage:  [--ctest-exe] [test_name] for instnace {test_reduce_ngraph_op}"
 }
 
 
@@ -266,8 +268,10 @@ function build_paddlepaddle()
 
     extra_options="-DWITH_NGRAPH=ON -DWITH_FLUID_ONLY=ON -DWITH_TESTING=ON"
 
-    exe_cmd "cmake .. -DCMAKE_BUILD_TYPE=$TYPE_COMPILE $extra_options -DWITH_DOC=OFF -DWITH_GPU=OFF -DWITH_DISTRIBUTE=OFF -DWITH_MKLDNN=ON -DWITH_MKL=ON -DWITH_GOLANG=OFF -DWITH_STYLE_CHECK=OFF  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DWITH_PROFILER=OFF "
-
+   if [ $1 -eq 1 ]; then
+      exe_cmd "cmake .. -DCMAKE_BUILD_TYPE=$TYPE_COMPILE $extra_options -DWITH_DOC=OFF -DWITH_GPU=OFF -DWITH_DISTRIBUTE=OFF -DWITH_MKLDNN=ON -DWITH_MKL=ON -DWITH_GOLANG=OFF -DWITH_STYLE_CHECK=OFF  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DWITH_PROFILER=OFF "
+   fi
+   
     exe_cmd "make -j $CORES"
     exe_cmd "make -j $CORES  inference_lib_dist"
 
@@ -423,7 +427,17 @@ if [ $# -eq 0 ]; then
     usage
  fi 
 
+is_dedicated_test=0
 
+if [ $# -eq 2 ]; then
+ 
+  if [ "$1" = "--ctest-exe" ]; then
+     is_dedicated_test=1
+  fi
+
+fi
+
+if [ $is_dedicated_test -eq 0 ]; then  
 
 for item in "$@"
 do
@@ -436,6 +450,12 @@ do
            exit 0
    fi
 
+
+   if [  "$item" = "--clear" ]; then
+           is_clear=1
+           was_used=1 
+   fi
+  
 
    if [  "$item" = "--debug" ]; then
            echo "--debug found"
@@ -470,6 +490,12 @@ do
          was_used=1
    fi
 
+   if [ "$item" = "--build-paddlepaddle-only-make" ]; then
+         is_build_paddlepaddle=2
+         was_used=1
+   fi
+
+
    if [ "$item" = "--ctest-stack" ]; then
          is_ctest=1
          was_used=1
@@ -484,6 +510,8 @@ do
 
 done
 
+
+fi
 
 
 #is_debug=0
@@ -500,10 +528,24 @@ else
 fi
 
 
-if [ $is_build_paddlepaddle -eq 1 ]; then
-     build_paddlepaddle
+if [ $is_clear -eq 1 ]; then
+     
+     note "*** TRY TO REMOVE DIRECTORY $build_dir_paddlepaddle *******"
+
+     if [ -d $build_dir_paddlepaddle ]; then
+           rm -rf $build_dir_paddlepaddle
+           note "OK COMPLETE!"
+     else
+           note "Nothing to remove!"
+     fi 
+
 fi
 
+
+
+if [ $is_build_paddlepaddle -gt 0 ]; then
+     build_paddlepaddle $is_build_paddlepaddle 
+fi
 
 if [ $is_build_capi_app_infer_image -eq 1 ]; then
      build_capi_app_infer_image
@@ -526,4 +568,10 @@ if [ $is_ctest -eq 1 ]; then
    run_ctest stack_ngraph
   # run_ctest stack_op
 
+fi
+
+
+if [ $is_dedicated_test -eq 1 ]; then
+    note "Run test $2" 
+    run_ctest $2
 fi
