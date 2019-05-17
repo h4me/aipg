@@ -42,6 +42,14 @@ function exe_cmd() {
 
 }
 
+function exe_note() {
+
+    echo "[note]:  $1" >> $log
+
+}   
+
+
+
 #exe_cmd "ls -l"
 
 #exit 1
@@ -117,6 +125,8 @@ function run_ctest() {
 
   export LD_LIBRARY_PATH="$build_dir_debug/python/paddle/libs"  
   note "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+  exe_note "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+
   if [ ! -d $LD_LIBRARY_PATH ]; then
     echo "ERROR: fail set LD_LIBRARY_PATH dir not found $LD_LIBRARY_PATH"
     exit 1
@@ -231,17 +241,21 @@ function run_infer_capi()
      if [ $is_debug -eq 0 ]; then
           
           export LD_LIBRARY_PATH="$build_dir_debug/python/paddle/libs" 
-          echo "LIBKI: $LD_LIBRARY_PATH"
+         # echo "LIBKI: $LD_LIBRARY_PATH"
+         exe_note "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
      fi
      
     export FLAGS_use_ngraph=true
-    export FLAGS_use_ngraph_cache=true
-      
-     exe_cmd "cd $OPT_MODEL_CAPI_DIR_BUILD"
-                                                                                       
-     exe_cmd "numactl --membind=0 --physcpubind=0-19 ./infer_image_classification --infer_model="$SAVE_MODELS_DIR/$USE_MODEL" --data_list=$BIG_DATASET_LIST_FILE --data_dir=$BIG_DATASET_DIR_DATA --skip_batch_num=0 --batch_size=32 --iterations=100 --profile --paddle_num_threads=20 --use_mkldnn"
+    exe_note "export FLAGS_use_ngraph=true" 
 
-     cd $ROOT_DIR
+    export FLAGS_use_ngraph_cache=true
+    exe_note "export FLAGS_use_ngraph_cache=true"  
+      
+    exe_cmd "cd $OPT_MODEL_CAPI_DIR_BUILD"
+                                                                                       
+    exe_cmd "numactl --membind=0 --physcpubind=0-19 ./infer_image_classification --infer_model="$SAVE_MODELS_DIR/$USE_MODEL" --data_list=$BIG_DATASET_LIST_FILE --data_dir=$BIG_DATASET_DIR_DATA --skip_batch_num=0 --batch_size=32 --iterations=100 --profile --paddle_num_threads=20 --use_mkldnn"
+
+    cd $ROOT_DIR
 
 
 }
@@ -385,12 +399,16 @@ function infer_image_debug() {
     export PYTHONPATH="$OPT_PADDLE_BUILD_DEBUG"
 
     echo "PYTHONPATH=$PYTHONPATH"
+    exe_note "export PYTHONPATH=$PYTHONPATH"
 
     cd $IIC_SCRIPT_DIR 
   #  python infer_image_classification.py --batch_size=1 --data_set=imagenet --iterations=400 --device=CPU --skip_batch_num=10 --infer_model_path=/data/PaddlePaddle/models/paddlepaddle/resnet_50_v1 --profile --use_fake_data
- export FLAGS_use_ngraph=true
- export FLAGS_use_ngraph_cache=true
- 
+    export FLAGS_use_ngraph=true
+    exe_note "export FLAGS_use_ngraph=true"
+
+    export FLAGS_use_ngraph_cache=true
+    exe_note "export FLAGS_use_ngraph_cache=true"
+
  ccmd="python infer_image_classification.py --batch_size=1 --data_set=imagenet --iterations=400 --device=CPU --skip_batch_num=10 --infer_model_path="$SAVE_MODELS_DIR/$USE_MODEL" --profile --use_fake_data"
  $ccmd
 
@@ -411,14 +429,15 @@ function infer_image_release() {
     prepare_model
 
     export PYTHONPATH="$OPT_PADDLE_BUILD_RELEASE"
+    exe_note "export PYTHONPATH=$PYTHONPATH"
     export LD_LIBRARY_PATH="$build_dir_debug/python/paddle/libs"    
     echo "PYTHONPATH=$PYTHONPATH"
+    exe_note "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 
-    cd $IIC_SCRIPT_DIR
+    exe_cmd "cd $IIC_SCRIPT_DIR"
   #  python infer_image_classification.py --batch_size=1 --data_set=imagenet --iterations=400 --device=CPU --skip_batch_num=10 --infer_model_path=/data/PaddlePaddle/models/paddlepaddle/resnet_50_v1 --profile --use_fake_data
 
     FLAGS_use_ngraph=true FLAGS_use_ngraph_cache=true  python infer_image_classification.py --batch_size=1 --data_set=imagenet --iterations=400 --device=CPU --skip_batch_num=10 --infer_model_path="$SAVE_MODELS_DIR/$USE_MODEL" --profile --use_fake_data
-
 
 }
 
@@ -533,7 +552,7 @@ if [ $is_clear -eq 1 ]; then
      note "*** TRY TO REMOVE DIRECTORY $build_dir_paddlepaddle *******"
 
      if [ -d $build_dir_paddlepaddle ]; then
-           rm -rf $build_dir_paddlepaddle
+           exe_cmd "rm -rf $build_dir_paddlepaddle"
            note "OK COMPLETE!"
      else
            note "Nothing to remove!"
