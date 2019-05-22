@@ -1,0 +1,255 @@
+#!/bin/bash
+
+root="/home/pawepiot/workspace/this_one/aipg/scripts/"
+from="$root/ngraph-paddle/"
+to="$root/paddle-public/"
+
+list_dir="$from $to"
+
+op_dir="paddle/fluid/operators/ngraph/ops/"
+op_test="python/paddle/fluid/tests/unittests/ngraph/"
+op_test_nnp="$op_test/nnp/"
+
+
+integrate_message="Enable ngraph matmul_op"
+file_operator="matmul_op.h"
+file_test_operator="test_matmul_ngraph_op.py"
+file_test_operator_nnp="test_matmul_ngraph_nnp_op.py"
+
+from_integrate_op="$from/$op_dir/$file_operator"
+from_integrate_test="$from/$op_test/$file_test_operator"
+from_integrate_test_nnp="$from/$op_test_nnp/$file_test_operator_nnp"
+
+to_integrate_op="$to/$op_dir/$file_operator"
+to_integrate_test="$to/$op_test/$file_test_operator"
+to_integrate_test_nnp="$to/$op_test_nnp/$file_test_operator_nnp"
+
+
+
+function error() {
+
+    echo "[ERROR]: " $1 
+}
+
+function check_if_dirs_exist()
+{
+for dir_ in $1; do 
+  if [ ! -d $dir_ ]; then
+    error "Directory does not exist $dir_"
+    exit 1
+  fi
+done
+}
+
+function check_if_files_exist()
+{
+for file_ in $1; do 
+  if [ ! -f $file_ ]; then
+    error "File does not exist $file_"
+    exit 1
+  fi
+done
+}
+
+function check() {
+
+    if [ $? -ne 0 ]; then
+      error $1
+    fi
+}
+
+function intergate_operators_nonnp()
+{
+
+   miss_files="$to_integrate_op $to_integrate_test "
+   curr_files="$from_integrate_op $from_integrate_test " 
+
+
+   check_if_files_exist $curr_files
+
+    for file in $miss_files; do
+      
+       if [ -f $file ]; then
+        error "File $file is intergated!! abort!! "
+        exit 1
+       fi        
+    done
+ 
+    cp $from_integrate_op $to_integrate_op
+ 
+    if [ $? -ne 0 ]; then
+      error "Can not copy file $from_integrate_op"
+      exit 1
+    fi
+
+    cp $from_integrate_test $to_integrate_test
+    if [ $? -ne 0 ]; then
+      error "Can not copy file $from_integrate_test"
+      exit 1
+    fi
+
+     
+
+    for file in $miss_files; do
+      _file_dir=$(dirname $file)
+      _file_org=$(basename $file)
+    
+      echo "[OK]: File $file copied $_file_org"
+
+      cd $_file_dir
+      git add $_file_org
+
+    done
+ 
+    git commit -am "$integrate_message"
+   
+     if [ $? -ne 0 ]; then
+      error " git commit fail"
+      exit 1
+     fi  
+   
+    git diff HEAD^! | grep +++ 
+
+}
+
+function intergate_operators()
+{
+
+   miss_files="$to_integrate_op $to_integrate_test $to_integrate_test_nnp"
+   curr_files="$from_integrate_op $from_integrate_test $from_integrate_test_nnp" 
+
+
+   check_if_files_exist $curr_files
+
+    for file in $miss_files; do
+      
+       if [ -f $file ]; then
+        error "File $file is intergated!! abort!! "
+        exit 1
+       fi        
+    done
+ 
+    cp $from_integrate_op $to_integrate_op
+ 
+    if [ $? -ne 0 ]; then
+      error "Can not copy file $from_integrate_op"
+      exit 1
+    fi
+
+    cp $from_integrate_test $to_integrate_test
+    if [ $? -ne 0 ]; then
+      error "Can not copy file $from_integrate_test"
+      exit 1
+    fi
+
+
+    _dir_nnp=$(dirname $to_integrate_test_nnp)
+  
+    if [ ! -d $_dir_nnp ]; then
+         mkdir $_dir_nnp
+         if [ $? -ne 0 ]; then
+            error "Can not create dir $_dir_nnp"
+            exit 1
+         fi 
+    fi
+ 
+    cp $from_integrate_test_nnp $to_integrate_test_nnp
+
+   if [ $? -ne 0 ]; then
+      error "Can not copy file $from_integrate_test_nnp"
+      exit 1
+   fi    
+     
+
+    for file in $miss_files; do
+      _file_dir=$(dirname $file)
+      _file_org=$(basename $file)
+    
+      echo "[OK]: File $file copied $_file_org"
+
+      cd $_file_dir
+      git add $_file_org
+
+    done
+ 
+    git commit -am "$integrate_message"
+   
+     if [ $? -ne 0 ]; then
+      error " git commit fail"
+      exit 1
+     fi  
+   
+    git diff HEAD^! | grep +++ 
+
+}
+
+
+function get_files_from_dir()
+{   
+    check_if_dirs_exist $1
+    files=`ls -al $1 | grep '^-' | awk '{print $9}'`
+    for f in $files; do 
+    echo $f
+    done
+}
+
+function show_operators_not_present()
+{
+
+     echo "########## operators ############"
+     check_if_dirs_exist $list_dir
+
+    _from_op=$from/$op_dir
+    _to_op=$to/$op_dir
+
+    files=`ls -al $_from_op | grep '^-' | awk '{print $9}'`
+    for f in $files; do 
+      if [ ! -f "$_to_op/$f" ]; then
+           echo "Not found in $_to_op => $f"   
+      fi
+    done
+    echo "######################"
+    
+}
+
+
+function show_tests_not_present()
+{
+
+     echo "######### TESTS #############"
+     check_if_dirs_exist $list_dir
+
+    _from_op=$from/$op_test
+    _to_op=$to/$op_test
+
+    files=`ls -al $_from_op | grep '^-' | awk '{print $9}'`
+    for f in $files; do 
+      if [ ! -f "$_to_op/$f" ]; then
+           echo "Not found in $_to_op => $f"   
+      fi
+    done
+    echo "######## NNP ##############"
+
+    _from_op=$from/$op_test_nnp
+    _to_op=$to/$op_test_nnp
+
+    files=`ls -al $_from_op | grep '^-' | awk '{print $9}'`
+    for f in $files; do 
+      if [ ! -f "$_to_op/$f" ]; then
+           echo "Not found in $_to_op => $f"   
+      fi
+    done
+    echo '############################'
+    
+    
+}
+
+
+show_operators_not_present
+show_tests_not_present
+
+#intergate_operators
+intergate_operators_nonnp
+#check_if_dirs_exist $list_dir
+#check_if_files_exist "/etc/passwd"
+#get_files_from_dir $from
