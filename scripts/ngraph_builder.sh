@@ -61,7 +61,7 @@ echo -e '\033[0;31m'"########## WORKDIR: ["  $PADDLE_REF "] ####################
 function usage() {
 
      echo "Usage:  [---show-python-path]"
-     echo "Usage:  [--debug] --clear {--build-paddlepaddle --build-paddlepaddle-only-make} --build-capi-app-infer-image --run-infer-capi --run-infer-python"
+     echo "Usage:  [--debug] --clear {--build-paddlepaddle --build-paddlepaddle-only-make } --build-capi-app-infer-image --run-infer-capi --run-infer-python"
      echo "---- python unit test ---"
      echo "Usage:  [--ctest-stack]"
      echo "Usage:  [--ctest-exe] [test_name] for instnace {test_reduce_ngraph_op}"
