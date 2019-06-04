@@ -60,7 +60,7 @@ source ref.txt
 echo -e '\033[0;31m'"########## WORKDIR: ["  $PADDLE_REF "] ####################"  '\033[0m'
 function usage() {
 
-     echo "Usage:  [---show-python-path]"
+     echo "Usage:  [--show-python-path]"
      echo "Usage:  [--debug] --clear {--build-paddlepaddle --build-paddlepaddle-only-make } --build-capi-app-infer-image --run-infer-capi --run-infer-python"
      echo "---- python unit test ---"
      echo "Usage:  [--ctest-stack]"
@@ -76,7 +76,7 @@ echo -e '\033[0;31m'"[info]:"$1'\033[0m'
 
 
 
-MODEL_DIR="$ROOT_DIR/paddle-models"
+MODEL_DIR="$ROOT_DIR/ngraph-models"
 MODEL_CAPI_DIR="$MODEL_DIR/fluid/image_classification/capi/"
 #OPT_MODEL_CAPI_DIR_BUILD="$MODEL_CAPI_DIR/build"
 OPT_MODEL_CAPI_DIR_BUILD=""
@@ -162,10 +162,10 @@ function build_capi_app_infer_image()
      exe_cmd "cd $OPT_MODEL_CAPI_DIR_BUILD"
  
     OPT_PADDLE_BUILD=$build_dir_release
-    TYPE_COMPILE="Release"
+    TYPE_COMPILE=" "
 
     if [ $is_debug -eq 1 ]; then
-       TYPE_COMPILE="Debug"
+       TYPE_COMPILE="-DCMAKE_BUILD_TYPE=Debug"
        OPT_PADDLE_BUILD=$build_dir_debug
    
     fi
@@ -176,7 +176,7 @@ function build_capi_app_infer_image()
        exit 1
     fi
 
-    exe_cmd "cmake .. -DCMAKE_BUILD_TYPE=$TYPE_COMPILE -DPADDLE_ROOT=$OPT_PADDLE_BUILD/fluid_install_dir/"
+    exe_cmd "cmake .. $TYPE_COMPILE -DPADDLE_ROOT=$OPT_PADDLE_BUILD/fluid_install_dir/"
     exe_cmd "make -j $CORES"
 
 
@@ -208,17 +208,17 @@ function build_capi()
     
 
     OPT_PADDLE_BUILD=$build_dir_release
-    TYPE_COMPILE="Release"
+    TYPE_COMPILE=" "
 
     if [ $is_debug -eq 1 ]; then
-       TYPE_COMPILE="Debug"
+       TYPE_COMPILE="-DCMAKE_BUILD_TYPE=Debug"
        OPT_PADDLE_BUILD=$build_dir_debug
    
     fi
 
   
 
-    exe_cmd "cmake .. -DCMAKE_BUILD_TYPE=$TYPE_COMPILE -DPADDLE_ROOT=$OPT_PADDLE_BUILD/fluid_install_dir/"
+    exe_cmd "cmake .. $TYPE_COMPILE -DPADDLE_ROOT=$OPT_PADDLE_BUILD/fluid_install_dir/"
    
    # cmake .. -DCMAKE_BUILD_TYPE=$TYPE_COMPILE -DPADDLE_ROOT=$OPT_PADDLE_BUILD/fluid_install_dir/
 
@@ -271,19 +271,22 @@ function build_paddlepaddle()
         
         exe_cmd "cd $build_dir_paddlepaddle"
 
-
-    TYPE_COMPILE="Release"
+ 
+     TYPE_COMPILE=" "
+ #   TYPE_COMPILE="RelWithDebInfo"
+  #  TYPE_COMPILE="Release"
 
     if [ $is_debug -eq 1 ]; then
-       TYPE_COMPILE="Debug"
+       TYPE_COMPILE="-DCMAKE_BUILD_TYPE=Debug"
     fi
 
     extra_options=""
 
-    extra_options="-DWITH_NGRAPH=ON -DWITH_FLUID_ONLY=ON -DWITH_TESTING=ON"
+    extra="-DWITH_TESTING=OFF -DWITH_INFERENCE_API_TEST=ON -DON_INFER=ON -DWITH_PYTHON=ON"
+    extra_options="$extra -DWITH_NGRAPH=ON "
 
    if [ $1 -eq 1 ]; then
-      exe_cmd "cmake .. -DCMAKE_BUILD_TYPE=$TYPE_COMPILE $extra_options -DWITH_DOC=OFF -DWITH_GPU=OFF -DWITH_DISTRIBUTE=OFF -DWITH_MKLDNN=ON -DWITH_MKL=ON -DWITH_GOLANG=OFF -DWITH_STYLE_CHECK=OFF  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DWITH_PROFILER=OFF "
+      exe_cmd "cmake .. $TYPE_COMPILE $extra_options  -DWITH_GPU=OFF "
    fi
    
     exe_cmd "make -j $CORES"
@@ -321,14 +324,14 @@ function prepare_model()
 function showpythonpath() {
 
 
-    echo "**** RUN INFER IMAGE *****"
+    echo "****SHOW_PYTHON_PATH *****"
 
-    if [ ! -f $IIC_SCRIPT ]; then
-        echo "FILE $IIC_SCIRPT not found"
-       exit 1
-    fi
+#    if [ ! -f $IIC_SCRIPT ]; then
+#        echo "FILE $IIC_SCIRPT not found"
+#       exit 1
+#    fi
 
-    prepare_model
+   # prepare_model
      
     export PYTHONPATH="$OPT_PADDLE_BUILD_DEBUG"
 
